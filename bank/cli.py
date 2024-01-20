@@ -45,8 +45,6 @@ def list_accounts():
         click.echo("No accounts found.")
     session.close()
 
-@cli.command()
-@click.argument("account_id", type=int)
 def view_transactions(account_id):
     session = SessionLocal()
 
@@ -54,20 +52,26 @@ def view_transactions(account_id):
         account = session.query(Account).filter_by(id=account_id).first()
 
         if account:
-            click.echo(f"Transactions for Account ID {account.id}, Balance: {account.balance}")
+            print(f"Transactions for Account ID {account.id}, Balance: {account.balance}")
             transactions = account.transactions
 
             if transactions:
                 for transaction in transactions:
-                    click.echo(f"Transaction ID: {transaction.id}, Amount: {transaction.amount}")
+                    print(f"Transaction ID: {transaction.id}, Amount: {transaction.amount}")
             else:
-                click.echo("No transactions found for this account.")
+                print("No transactions found for this account.")
         else:
-            click.echo("Account not found.")
+            print("Account not found.")
     except Exception as e:
-        click.echo(f"An error occurred: {e}")
+        print(f"An error occurred: {e}")
     finally:
         session.close()
+
+@cli.command()
+def view_transactions_command():
+    account_id = int(input("Enter the Account ID: "))
+    view_transactions(account_id)
+
 
 @cli.command()
 @click.option("--name", prompt="Enter the user's name", help="Name of the user")
@@ -100,14 +104,13 @@ def create_account(user_id, balance=0):
     finally:
         session.close()
 
-
 @cli.command()
 def add_transaction():
     session = SessionLocal()
 
     try:
         account_id = click.prompt("Enter the Account ID", type=int)
-        amount = click.prompt("Enter the transaction amount", type=int)
+        amount = click.prompt("Enter the transaction amount", type=float)
 
         account = session.query(Account).filter_by(id=account_id).first()
 
@@ -142,16 +145,19 @@ if __name__ == "__main__":
             elif choice == 3:
                 list_accounts()
             elif choice == 4:
-                account_id = click.prompt("Enter the Account ID", type=int)
-                view_transactions(account_id)
+                    account_id = input("Enter the Account ID: ")
+                    try:
+                       account_id = int(account_id)
+                       view_transactions(account_id)
+                    except ValueError:
+                       print("Invalid input. Please enter a valid integer for the Account ID.")
+
             elif choice == 5:
                 add_user()
             elif choice == 6:
                 add_account()
             elif choice == 7:
-                account_id = click.prompt("Enter the Account ID", type=int)
-                amount = click.prompt("Enter the transaction amount", type=int)
-                add_transaction(account_id, amount)
+                add_transaction()
             elif choice == 8:
                 break
             else:
